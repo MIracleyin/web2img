@@ -2,6 +2,7 @@ use std::{path::Path, ffi::OsStr};
 
 use anyhow::Result;
 use clap::Parser;
+use image::ImageFormat;
 use url::Url;
 
 mod web2img;
@@ -23,13 +24,14 @@ struct Args {
     url: String,
 }
 
-fn get_image_format(path: &Path) -> Option<String> {
+fn get_image_format(path: &Path) -> Option<ImageFormat> {
     path.extension()
         .and_then(|p| OsStr::to_str(p))
         .and_then(|ext| {
             let ext = ext.to_lowercase();
             match ext.as_str() {
-                "png" | "jpg" | "jpeg" => Some(ext),
+                "jpg" | "jpeg" => Some(ImageFormat::Jpeg),
+                "png" => Some(ImageFormat::Png),
                 _ => None,
             } 
         })
@@ -46,7 +48,7 @@ fn valid_url(url: &str) -> Result<(), String> {
 fn valid_output_path(name: &str) -> Result<(), String> {
     let path = Path::new(&name);
     let parent = path.parent().and_then(|p| p.is_dir().then(|| p));
-    let ext = get_file_ext(path);
+    let ext = get_image_format(path);
 
     if parent.is_none() {
         return Err("File path mast be exists".into());
@@ -62,9 +64,9 @@ fn valid_output_path(name: &str) -> Result<(), String> {
 fn main() {
     let args = Args::parse();
 
-    println!("{:#?}", args);
+    let format = get_image_format(Path::new(&args.output)).unwrap();
 
-    web2img(&args.url, &args.output).unwrap();
+    web2img(&args.url, &args.output, format).unwrap();
 
 
 

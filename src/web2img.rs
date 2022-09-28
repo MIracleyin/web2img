@@ -1,8 +1,6 @@
-use std::fs;
-
 use headless_chrome::{protocol::cdp::Page::CaptureScreenshotFormatOption, Browser, LaunchOptions};
 use anyhow::{Result, Ok};
-use image::{Luma, DynamicImage, load_from_memory, imageops::overlay};
+use image::{Luma, DynamicImage, load_from_memory, imageops::overlay, ImageFormat, GenericImageView};
 use qrcode::QrCode;
 
 fn url2img(url: &str) -> Result<DynamicImage>{
@@ -10,7 +8,6 @@ fn url2img(url: &str) -> Result<DynamicImage>{
     // to render completely, take a screenshot of the entire page
     // in JPEG-format using 75% quality.
     let options = LaunchOptions::default_builder()
-        .window_size(Some((1200, 1600)))
         .build()
         .expect("Couldn't find appropriate Chrome binary.");
     let browser = Browser::new(options)?;
@@ -20,6 +17,7 @@ fn url2img(url: &str) -> Result<DynamicImage>{
     let data = tab
         .navigate_to(url)?
         .wait_for_element("body")?
+        // .find_element("body")?
         .capture_screenshot(CaptureScreenshotFormatOption::Png)?;
     Ok(load_from_memory(&data)?)
 
@@ -36,13 +34,15 @@ fn gen_qrcode(url: &str) -> Result<DynamicImage>{
 }
 
 fn do_overlay(botton: &mut DynamicImage, top: &DynamicImage){
-    overlay(botton, top, 0, 0);
+    let x = botton.width() - top.width() - 10;
+    let y = botton.height() - top.width() - 10;
+    overlay(botton, top, x, y);
 }
 
 pub fn web2img(url: &str, output: &str, format:ImageFormat) -> Result<()> {
-    let botton = url2img(url)?;
+    let mut botton = url2img(url)?;
     let qrcode = gen_qrcode(url)?;
     do_overlay(&mut botton, &qrcode);
-    botton.save_with_format(output, format);
+    botton.save_with_format(output, format)?;
     Ok(())
 }
