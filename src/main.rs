@@ -23,7 +23,7 @@ struct Args {
     url: String,
 }
 
-fn get_file_ext(path: &Path) -> Option<String> {
+fn get_image_format(path: &Path) -> Option<String> {
     path.extension()
         .and_then(|p| OsStr::to_str(p))
         .and_then(|ext| {

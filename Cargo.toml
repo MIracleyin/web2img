@@ -9,6 +9,6 @@ edition = "2021"
 anyhow = "1.0.40"
 headless_chrome = { git = "https://github.com/atroche/rust-headless-chrome", tag = "v1.0.0" }
 qrcode = "0.12"
-image = "0.24.3"
+image = "0.23"
 clap = { version = "3.2.22", features = ["derive"] }
 url = "2.2.2"
